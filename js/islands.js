@@ -1,4 +1,7 @@
-var map, vis, layer;
+var map, 
+    vis, 
+    layer,
+    cdb_api = "http://mol.cartodb.com/api/v1/sql?q={0}";
 
 
 
@@ -74,19 +77,16 @@ function main() {
 
 //Initialize the autocomplete widget
 function initAutocomplete() {
-    var ac_url = "" + 
-        "http://mol.cartodb.com/api/v1/sql?" + 
-        "q=SELECT DISTINCT name FROM gadm_islands_join_names WHERE " + 
+    var ac_sql = "" + 
+        "SELECT name, name_alt " +
+        "FROM gadm_islands_join_names WHERE " + 
         "name~*'\\m{0}' OR name_alt~*'\\m{0}' ORDER BY name asc LIMIT 3000";
         
     $.ui.autocomplete.prototype._renderItem = function(ul, item) {
 
         item.label = item.label.replace(
-            new RegExp(
-                "(?![^&;]+;)(?!<[^<>]*)(" + 
-                $.ui.autocomplete.escapeRegex(this.term) + 
-                ")(?![^<>]*>)(?![^&;]+;)", "gi"),
-            "<strong>$1</strong>"
+            new RegExp(this.term, "gi"),
+            "<strong>$&</strong>"
         );
         return $("<li></li>").data(
             "item.autocomplete", item).append(
@@ -95,17 +95,24 @@ function initAutocomplete() {
     };
 
     $('.searchbox .text').autocomplete({
-        minLength : 1,
+        minLength : 2,
         source : function(request, response) {
             $.getJSON(
-                ac_url.format($.trim(request.term).replace(/ /g, ' ')), 
+                cdb_api.format(
+                    ac_sql.format($.trim(request.term).replace(/ /g, ' '))
+                ), 
                 function(json) {
                     var names = [];
                     _.each(json.rows, function(row) {
-                        var name;
+                        var name, 
+                            name_alt = '';
                         if (row.name != undefined) {
                             name = row.name;
-                            names.push(name);
+                            if(row.name_alt != null) {
+                                name_alt = '&nbsp;<i>alt: {0}</i>'
+                                    .format(row.name_alt);
+                            }
+                            names.push({label:(name+name_alt), value:name});
                         }
                     });
                     response(names);
@@ -154,23 +161,24 @@ function createSlider() {
 //Search for an island name then zoom to and outline the result.
 function search(val) {
     var thelayer,
-        sql = "SELECT *, " +
+        map_sql = "SELECT *, " +
             "CASE WHEN (name_engli = '{0}' " +
                 "OR island= '{0}' OR name_alt = '{0}') " +
             "THEN true ELSE false END as selected " +
-            "FROM gadm_islands_join_names";
-
-    $('.searchbox .text').autocomplete("close");
-    
-    $.getJSON(
-        "http://mol.cartodb.com/api/v1/sql?q=" + 
+            "FROM gadm_islands_join_names",
+        extent_sql = "" + 
         "SELECT ST_YMIN(ST_EXTENT(the_geom)) as miny, " + 
             "ST_XMIN(ST_EXTENT(the_geom)) as minx, " + 
             "ST_YMAX(ST_EXTENT(the_geom)) as maxy, " + 
             "ST_XMAX(ST_EXTENT(the_geom)) as maxx " + 
         "FROM gadm_islands_join_names where " +
-            "island = '{1}' or name_engli = '{1}'  or name_alt = '{1}'"
-            .format($('button.selected').data('table'), val), 
+            "island = '{0}' or name_engli = '{0}'  or name_alt = '{0}'";
+
+    $('.searchbox .text').autocomplete("close");
+    
+    $.getJSON(
+        
+        cdb_api.format(extent_sql.format(val)), 
         function(response) {
             var minx = -180, maxx = 180, miny = -80, maxy = 80;
             if (response.rows[0].miny != null && 
@@ -208,9 +216,7 @@ function search(val) {
 
     }
 
-    thelayer.setQuery(
-        sql.format(val)
-    )
+    thelayer.setQuery(map_sql.format(val));
 }
 
 window.onload = main; 
