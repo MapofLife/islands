@@ -1,9 +1,7 @@
 var map, 
     vis, 
     layer,
-    cdb_api = "http://mol.cartodb.com/api/v1/sql?q={0}";
-
-
+    cdb_api = "http://d3dvrpov25vfw0.cloudfront.net/api/v1/sql?q={0}";
 
 // Extend String with this handy string formatting method.
 String.prototype.format = function(i, safe, arg) {
@@ -96,10 +94,13 @@ function initAutocomplete() {
 
     $('.searchbox .text').autocomplete({
         minLength : 2,
+        autoFocus: true,
         source : function(request, response) {
             $.getJSON(
                 cdb_api.format(
-                    ac_sql.format($.trim(request.term).replace(/ /g, ' '))
+                    ac_sql.format($.trim(request.term)
+                        .replace(/ /g, ' ')
+                        .replace(/'/g,"''"))
                 ), 
                 function(json) {
                     var names = [];
@@ -121,12 +122,7 @@ function initAutocomplete() {
             );
         },
         select : function(event, ui) {
-            search(ui.item.value);
-            $(this).autocomplete("close");
-        }
-    }).keyup(function(event, ui) {
-        if (event.keyCode === 13 && $('.ui-menu').is(':visible')) {
-            search($($('.ui-menu-item')[0]).text());
+            search(ui.item.value.replace(/'/g,"''"));
             $(this).autocomplete("close");
         }
     }).focus(function(event) {
