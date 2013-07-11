@@ -1,5 +1,5 @@
 application: map-of-life
-version: canary
+version: islands
 runtime: python27
 threadsafe: true
 api_version: 1
