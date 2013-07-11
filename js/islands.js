@@ -78,7 +78,7 @@ function main() {
 //Initialize the autocomplete widget
 function initAutocomplete() {
     var ac_sql = "" + 
-        "SELECT name, name_alt " +
+        "SELECT DISTINCT name, name_alt " +
         "FROM gadm_islands_join_names WHERE " + 
         "name~*'\\m{0}' OR name_alt~*'\\m{0}' ORDER BY name asc LIMIT 3000";
         
@@ -163,7 +163,7 @@ function search(val) {
     var thelayer,
         map_sql = "SELECT *, " +
             "CASE WHEN (name_engli = '{0}' " +
-                "OR island= '{0}' OR name_alt = '{0}') " +
+                "OR island= '{0}') " +
             "THEN true ELSE false END as selected " +
             "FROM gadm_islands_join_names",
         extent_sql = "" + 
@@ -172,7 +172,7 @@ function search(val) {
             "ST_YMAX(ST_EXTENT(the_geom)) as maxy, " + 
             "ST_XMAX(ST_EXTENT(the_geom)) as maxx " + 
         "FROM gadm_islands_join_names where " +
-            "island = '{0}' or name_engli = '{0}'  or name_alt = '{0}'";
+            "island = '{0}' or name_engli = '{0}'";
 
     $('.searchbox .text').autocomplete("close");
     
