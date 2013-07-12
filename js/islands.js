@@ -1,6 +1,7 @@
+//some globals
 var map, 
     vis, 
-    layer,
+    layer, 
     cdb_api = "http://d3dvrpov25vfw0.cloudfront.net/api/v1/sql?q={0}";
 
 // Extend String with this handy string formatting method.
