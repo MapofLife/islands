@@ -23,8 +23,9 @@ String.prototype.format = function(i, safe, arg) {
 //Initialize the CartoDB visualization and Google map controls.
 function main() {
     cartodb.createVis(
-        'map', 
-        'http://mol.cartodb.com/api/v1/viz/gadm_islands_join_names/viz.json', 
+        'map',
+        'http://mol.cartodb.com/api/v2/viz/65652344-9026-11e3-994f-6805ca06688a/viz.json', 
+        //'http://mol.cartodb.com/api/v1/viz/gadm_islands_join_names/viz.json', 
         {cartodb_logo : false}
     ).done(function(viz, layer) {
         var logo = $('<DIV id="logo">by Map of Life, 2013</div>');
